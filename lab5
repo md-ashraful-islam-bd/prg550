@@ -1,0 +1,133 @@
+Step-1: Importing modules
+
+import numpy as np
+import pandas as pd
+from matplotlib import pyplot as plt
+import re
+import subprocess
+import string
+import math
+
+
+
+Step-2: Markdown comments
+
+###### program:         sample_PRG550X.241.L5.ipynb
+###### name:            
+###### student number:  
+###### date:            March 25, 2024
+###### course:          PRG550X
+###### purpose:         solution to PRG550 lab #5 (winter 2024) using Jupyter Notebooks
+
+
+
+Q1: Rewriting the get_pi_info() function:
+
+def get_pi_info():
+    command = "pinout"
+    process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+    output, error = process.communicate()
+    
+    output = output.decode("utf-8")
+    
+    # Extract required information using regex
+    description = re.search(r"Description\s+:\s+(.*)", output).group(1)
+    revision = re.search(r"Revision\s+:\s+(.*)", output).group(1)
+    soc = re.search(r"SoC\s+:\s+(.*)", output).group(1)
+    ram = re.search(r"RAM\s+:\s+(.*)", output).group(1)
+    storage = re.search(r"Storage\s+:\s+(.*)", output).group(1)
+    usb_ports = re.search(r"USB ports\s+:\s+(.*)", output).group(1)
+    ethernet_ports = re.search(r"Ethernet ports\s+:\s+(.*)", output).group(1)
+    wifi = re.search(r"Wi-fi\s+:\s+(.*)", output).group(1)
+    bluetooth = re.search(r"Bluetooth\s+:\s+(.*)", output).group(1)
+    camera_ports = re.search(r"Camera ports \(CSI\)\s+:\s+(.*)", output).group(1)
+    display_ports = re.search(r"Display ports \(DSI\)\s+:\s+(.*)", output).group(1)
+    
+    # Print the information
+    print("Description        :", description)
+    print("Revision           :", revision)
+    print("SoC                :", soc)
+    print("RAM                :", ram)
+    print("Storage            :", storage)
+    print("USB ports          :", usb_ports)
+    print("Ethernet ports     :", ethernet_ports)
+    print("Wi-fi              :", wifi)
+    print("Bluetooth          :", bluetooth)
+    print("Camera ports (CSI) :", camera_ports)
+    print("Display ports (DSI):", display_ports)
+
+
+
+Q2: Parsing Weather Data
+
+def parse_weather_by_year(year):
+    # Open and read the HTML file
+    with open(f"toronto_weather.{year}.html", "r") as file:
+        html_content = file.read()
+        
+    # Initialize empty lists to store data
+    city = []
+    day_of_year = []
+    month = []
+    day_of_month = []
+    year = []
+    high_temp = []
+    low_temp = []
+    precipitation = []
+    
+    # Regex pattern for extracting data
+    pattern = r"<td><div class='width-130'><a href='/cities/toronto/day/.*'>(.*)</a></div></td>\n<td class='text-right temp30'>(.*)</td>\n<td class='text-right temp20'>(.*)</td>\n<td class='text-right rainsnow1'>(.*)</td>"
+    
+    matches = re.findall(pattern, html_content)
+    
+    # Dictionary to map month names to numbers
+    months = {"january": 1, "february": 2, "march": 3, "april": 4, "may": 5, "june": 6, "july": 7, "august": 8, "september": 9, "october": 10, "november": 11, "december": 12}
+    
+    # Process matches and extract data
+    for match in matches:
+        day = match[0].split("-")[1]
+        month_name = match[0].split("-")[0]
+        month_num = months[month_name]
+        high = float(match[1])
+        low = float(match[2])
+        precip = float(match[3])
+        
+        city.append("Toronto")
+        day_of_year.append(int(day))
+        month.append(month_name)
+        day_of_month.append(int(day))
+        year.append(int(year))
+        high_temp.append(high)
+        low_temp.append(low)
+        precipitation.append(precip)
+    
+    # Create Pandas DataFrame
+    data = {
+        "city": city,
+        "day_of_year": day_of_year,
+        "month": month,
+        "day_of_month": day_of_month,
+        "year": year,
+        "high_temp": high_temp,
+        "low_temp": low_temp,
+        "precipitation": precipitation
+    }
+    
+    df = pd.DataFrame(data)
+    
+    # Write DataFrame to CSV
+    df.to_csv(f"toronto_weather.{year}.csv", index=False)
+    
+    # Read CSV into DataFrame and display
+    df_read = pd.read_csv(f"toronto_weather.{year}.csv")
+    
+    pd.set_option('display.max_rows', None)
+    pd.set_option('display.max_columns', None)
+    pd.set_option('display.max_colwidth', 3000)
+    
+    display(df_read)
+    
+    # Display DataFrame's shape and describe method
+    print("Shape of DataFrame:", df_read.shape)
+    print("\nDescription of DataFrame:\n", df_read.describe())
+
